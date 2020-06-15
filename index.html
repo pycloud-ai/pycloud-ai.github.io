@@ -43,6 +43,8 @@
 <ul class="subnav">
 <li class="toctree-l2"><a class="nav-item toc" href="#getting-started">Getting started</a></li>
 <li class="toctree-l2"><a class="nav-item toc" href="#api-reference">API reference</a></li>
+<li class="toctree-l2"><a class="nav-item toc" href="#console">Console</a></li>
+<li class="toctree-l2"><a class="nav-item toc" href="#cli">CLI</a></li>
 </ul></li>
                 </ul>
             </nav>
@@ -74,11 +76,118 @@ for better scalability can be done in minutes. </p>
 <li>Download <code>pycloud-cli</code> from https://pycloud.ai/download</li>
 <li>Run <code>pycloud-cli init</code> command</li>
 <li>Check and download one of the <a href="https://github.com/pycloud-ai/examples">examples on github</a></li>
-<li>Deploy it on local docker server with command: <code>pycloud-cli deploy docker example.py</code></li>
-<li>Check the deployment summary for api and monitoring console urls. </li>
+<li>Deploy it on local docker server with command: </li>
 </ul>
+<p><code>pycloud deploy docker --file example.py</code>
+* Check the deployment summary for api and monitoring console urls. </p>
 <h2 id="api-reference">API reference</h2>
-<pre><code>TBD...
+<p>To start your adventure with PyCloud you need to initialize PyCloud object instance:</p>
+<pre><code class="python">CLOUD = PyCloud.get_instance()
+</code></pre>
+
+<p>PyCloud is providing annotations, which will allow you to adjust your application architecture with minimal 
+effort. Moreover PyCloud provides functions to communicate between endpoints both synchronously and 
+asynchronously.</p>
+<h3 id="cloudendpoint">@CLOUD.endpoint</h3>
+<p>You can use this annotation to create new endpoint in microservice architecture.
+<code>@CLOUD.endpoint</code> has two parameters: </p>
+<p><code>service_id</code> - this enable you to collect chosen endpoints in one service</p>
+<p><code>protocols</code> - list of protocols which will be used to expose your <code>endpoint</code>. </p>
+<p>Currently PyCloud support protocols: <code>HTTP</code>, <code>GRPC</code>, <code>AMQP</code> </p>
+<p>To make your already implemented endpoint available via GRPC protocol you only need to add this annotation:</p>
+<pre><code class="python">@CLOUD.endpoint(&quot;api&quot;, protocols=[&quot;GRPC&quot;])
+def get():
+    &quot;&quot;&quot;Endpoint implementation&quot;&quot;&quot;
+    return result
+</code></pre>
+
+<p>If you want to have more endpoints available in the same service you can simply add <code>@CLOUD.endpoint</code> to next function (with the same <code>service_id="api"</code>):</p>
+<pre><code class="python">@CLOUD.endpoint(&quot;api&quot;, protocols=[&quot;GRPC&quot;])
+def post():
+    &quot;&quot;&quot;Endpoint implementation&quot;&quot;&quot;
+    return result
+</code></pre>
+
+<p>This gives you great flexibility to choose which parts of application should be independent. With combination of deployment in Kubernetes cluster this gives you possibility to scale only some parts of your application.</p>
+<p>To add new, independent endpoint, just add <code>@CLOUD.endpoint</code> annotation with different service_id:</p>
+<pre><code class="python">@CLOUD.endpoint(&quot;processing&quot;, protocols=[&quot;GRPC&quot;])
+def processing():
+    &quot;&quot;&quot;Endpoint implementation&quot;&quot;&quot;
+    return result
+</code></pre>
+
+<h3 id="cloudinit_service">@CLOUD.init_service</h3>
+<p>Sometimes there is a need to initialize service with some data. For this purpose you can use <code>@CLOUD.init_service</code> annotation.</p>
+<pre><code class="python">@CLOUD.init_service(&quot;publish-service&quot;)
+def initialize_publisher():
+    return {&quot;data&quot;: &quot;something&quot;}
+</code></pre>
+
+<p>Than you can retrieve data:</p>
+<pre><code class="python">@CLOUD.endpoint(&quot;publish-service&quot;, protocols=['AMQP'])
+def publish(result):
+    data = CLOUD.initialized_data()
+    LOGGER.info(&quot;Result is : {}, and the data is: {}&quot;.format(result, data))
+</code></pre>
+
+<h3 id="cloudcall">CLOUD.call()</h3>
+<p>This method is used to combine to endpoints synchronously. Here is example of API endpoint which is taking
+image and sending it synchronously to second service called <code>pre_process</code>. Please notice that with this 
+approach you are able to scale independently your <code>api</code> and <code>pre_process</code> services. </p>
+<pre><code class="python">@CLOUD.endpoint(&quot;api&quot;, protocols=[&quot;GRPC&quot;])
+def api(image):
+    result = CLOUD.call(pre_process, image)
+    return result
+</code></pre>
+
+<h3 id="cloudmessage">CLOUD.message()</h3>
+<p>Alternative to <code>CLOUD.call()</code> is asynchronous <code>CLOUD.message()</code>.</p>
+<p>First step is to create asynchronous consumer <code>endpoint</code> based on <code>AMQP</code> - Advanced Message Queuing Protocol</p>
+<pre><code class="python">@CLOUD.endpoint(&quot;asynchronous-consumer&quot;, protocols=[&quot;AMQP&quot;])
+def asynchronous_consumer(message):
+    LOGGER.info(&quot;Just received asynchronous message :%s&quot;, message)
+</code></pre>
+
+<p>Second step is creation of <code>endpoint</code> which will use above asynchronous <code>endpoint</code>:</p>
+<pre><code class="python">@CLOUD.endpoint(&quot;postprocessing&quot;)
+def postprocess(results):
+    &quot;&quot;&quot; Convert model output to string label&quot;&quot;&quot;
+    index = np.argmax(results)
+    LOGGER.info(&quot;Detected class number: %d&quot;, index)
+    label = IMAGENET_LABELS[index]
+    CLOUD.message(asynchronous_consumer, label)
+    return label
+</code></pre>
+
+<h2 id="console">Console</h2>
+<p>TBD</p>
+<h2 id="cli">CLI</h2>
+<p><code>$ pycloud -h</code></p>
+<pre><code>usage: pycloud [-h] {version,deploy,update,ls,clean} ...
+
+positional arguments:
+  {version,deploy,update,ls,clean}
+                        commands
+    version             display PyCloud and PyCloud-cli versions
+    deploy              deploy PyCloud services
+    update              not implemented
+    ls                  not implemented
+    clean               not implemented
+
+optional arguments:
+  -h, --help            show this help message and exit
+</code></pre>
+
+<p><code>$ pycloud deploy -h</code></p>
+<pre><code>usage: pycloud deploy [-h] --file FILE [--dev-mode DEV_MODE] {docker,gke}
+
+positional arguments:
+  {docker,gke}          Deploy to one of the possible environments
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --file FILE, -f FILE  path to file with PyCloud deployment specification
+  --dev-mode DEV_MODE   development mode
 </code></pre></div>
                 <footer>
     <div class="footer-note">
