@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="None">
     <link rel="shortcut icon" href="img/favicon.ico">
-    <title>Welcome to PyCloud! &mdash; PyCloud</title>
+    <title>Home &mdash; PyCloud</title>
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
     <link rel="stylesheet" href="//use.fontawesome.com/releases/v5.8.1/css/all.css">
@@ -63,23 +63,27 @@
     
 </ul>
 </nav>
-                <div id="content"><h1 id="welcome-to-pycloud">Welcome to PyCloud!</h1>
+                <div id="content"><p><img alt="alt text" src="img/pycloud-dark.png" /></p>
+<h1 id="welcome-to-pycloud">Welcome to PyCloud!</h1>
 <p>PyCloud is a solution for creating scalable cloud deployments with Python. 
-It translates local Python code into kubernetes cluster with minimal number of extra
-logic (no more handcrafting yaml files). </p>
+It translates local Python code into cluster of connected services on kubernetes or docker, with minimal amount of extra
+logic (no more handcrafting tons of yaml files). </p>
 <p>That allows easy and fast transformation of algorithms/AI code into cloud environment. </p>
-<p>Because it's fast, it gives flexibility not known before - adjusting architecture/redeployment<br />
-for better scalability can be done in minutes. </p>
+<p>It gives flexibility not known before - adjusting architecture/redeployment for better scalability can be done in minutes. </p>
 <h2 id="getting-started">Getting started</h2>
 <ul>
-<li>Create and enter python virtualenv <code>virtualenv -p python3 .venv &amp;&amp; . .venv3/bin/activate</code></li>
-<li>Download <code>pycloud-cli</code> from https://pycloud.ai/download</li>
-<li>Run <code>pycloud-cli init</code> command</li>
-<li>Check and download one of the <a href="https://github.com/pycloud-ai/examples">examples on github</a></li>
-<li>Deploy it on local docker server with command: </li>
+<li>Download PyCloud installer from <a href="https://pycloud.ai">PyCloud.ai</a></li>
+<li>Execute commands:<pre><code>virtualenv .venv -p python3
+. .venv/bin/activate
+chmod a+x pycloud-install*.sh
+./pycloud-install*.sh
+</code></pre></li>
+<li>After installation <code>pycloudcli</code> script is available in current folder.</li>
+<li>Check and download one of the <a href="https://github.com/pycloud-ai/pycloud-examples">examples on github</a></li>
+<li>Deploy it on local docker server with command: 
+<pre><code>./pycloudcli deploy docker --file example.py</code></pre></li>
+<li>Check the deployment summary for api and monitoring console urls. </li>
 </ul>
-<p><code>pycloud deploy docker --file example.py</code>
-* Check the deployment summary for api and monitoring console urls. </p>
 <h2 id="api-reference">API reference</h2>
 <p>To start your adventure with PyCloud you need to initialize PyCloud object instance:</p>
 <pre><code class="python">CLOUD = PyCloud.get_instance()
@@ -108,7 +112,7 @@ def post():
     return result
 </code></pre>
 
-<p>This gives you great flexibility to choose which parts of application should be independent. With combination of deployment in Kubernetes cluster this gives you possibility to scale only some parts of your application.</p>
+<p>This gives you great flexibility to choose which parts of application should be independent. With combination of deployment in Kubernetes cluster this gives a possibility to scale 'bottlenecks' of your application.</p>
 <p>To add new, independent endpoint, just add <code>@CLOUD.endpoint</code> annotation with different service_id:</p>
 <pre><code class="python">@CLOUD.endpoint(&quot;processing&quot;, protocols=[&quot;GRPC&quot;])
 def processing():
@@ -160,7 +164,33 @@ def postprocess(results):
 </code></pre>
 
 <h2 id="console">Console</h2>
-<p>TBD</p>
+<p><code>pycloud-console</code> is monitoring tool which will allow you to better understand 
+traffic and services graph in your deployment</p>
+<p>After starting your PyCloud application you will get terminal output similar to this one:
+<img alt="alt text" src="img/pycloud_console_cluster_deployment.png" /></p>
+<p>So you can see exposed endpoints of your application and address of <code>pycloud-console</code></p>
+<p><code>pycloud-console</code> without traffic:
+<img alt="alt text" src="img/pycloud_console_no_traffic.png" /></p>
+<p>At the top you can see Events and you can choose time frame for monitoring.</p>
+<p>On the left you can see available services and their replication.</p>
+<p>In the center there is a graph of your endpoints.
+ If two endpoints have the same color, it means that they belong to the same service. 
+They will talk to each other using local function calls instead of network connection (this does not apply
+to CLOUD.message which will always go through RabbitMQ) </p>
+<p><code>pycloud-console</code> after sending traffic:<br />
+<img alt="alt text" src="img/pycloud_console_traffic.png" /></p>
+<p>As you can see new events are visible at the top.</p>
+<p>Moreover endpoints size is scaled depending on duration of function.</p>
+<p>To get more information about endpoint, just click on one:
+<img alt="alt text" src="img/pycloud_console_service_info.png" /></p>
+<p>To get more information about connection, click expand:
+<img alt="alt text" src="img/pycloud_console_connection_info.png" /></p>
+<p>If you want to see or disable additional information for all services/connections, 
+use <code>Endpoint metrics</code> and <code>Edge metrics</code> options:
+<img alt="alt text" src="img/pycloud_console_connections_all.png" /></p>
+<p>If you are interested only in some specific fragment of the graph, you can move 
+around services and zoom chosen fragment:
+<img alt="alt text" src="img/pycloud_console_zoom.png" /></p>
 <h2 id="cli">CLI</h2>
 <p><code>$ pycloud -h</code></p>
 <pre><code>usage: pycloud [-h] {version,deploy,update,ls,clean} ...
@@ -170,9 +200,7 @@ positional arguments:
                         commands
     version             display PyCloud and PyCloud-cli versions
     deploy              deploy PyCloud services
-    update              not implemented
-    ls                  not implemented
-    clean               not implemented
+    clean               remove existing PyCloud cluster
 
 optional arguments:
   -h, --help            show this help message and exit
