@@ -63,7 +63,7 @@
     
 </ul>
 </nav>
-                <div id="content"><p><img alt="alt text" src="img/pycloud-dark.png" /></p>
+                <div id="content"><p><img alt="alt text" src="img/pycloud-dark.png" style="width:300px;" /></p>
 <h1 id="welcome-to-pycloud">Welcome to PyCloud!</h1>
 <p>PyCloud is a solution for creating scalable cloud deployments with Python. 
 It translates local Python code into cluster of connected services on kubernetes or docker, with minimal amount of extra
@@ -136,8 +136,8 @@ def publish(result):
 
 <h3 id="cloudcall">CLOUD.call()</h3>
 <p>This method is used to combine to endpoints synchronously. Here is example of API endpoint which is taking
-image and sending it synchronously to second service called <code>pre_process</code>. Please notice that with this 
-approach you are able to scale independently your <code>api</code> and <code>pre_process</code> services. </p>
+image and sending it synchronously to second service called <code>pre_process</code>. 
+Please notice that with this approach you are able to scale independently your <code>api</code> and <code>pre_process</code> services. </p>
 <pre><code class="python">@CLOUD.endpoint(&quot;api&quot;, protocols=[&quot;GRPC&quot;])
 def api(image):
     result = CLOUD.call(pre_process, image)
@@ -166,31 +166,31 @@ def postprocess(results):
 <h2 id="console">Console</h2>
 <p><code>pycloud-console</code> is monitoring tool which will allow you to better understand 
 traffic and services graph in your deployment</p>
-<p>After starting your PyCloud application you will get terminal output similar to this one:
-<img alt="alt text" src="img/pycloud_console_cluster_deployment.png" /></p>
+<p>After starting your PyCloud application you will get terminal output similar to this one:</p>
+<p><img alt="alt text" src="img/pycloud_console_cluster_deployment.png" style="width:800px;" /></p>
 <p>So you can see exposed endpoints of your application and address of <code>pycloud-console</code></p>
-<p><code>pycloud-console</code> without traffic:
-<img alt="alt text" src="img/pycloud_console_no_traffic.png" /></p>
+<p><code>pycloud-console</code> without traffic:</p>
+<p><img alt="alt text" src="img/pycloud_console_no_traffic.png" style="max-width:1400px;" /></p>
 <p>At the top you can see Events and you can choose time frame for monitoring.</p>
 <p>On the left you can see available services and their replication.</p>
 <p>In the center there is a graph of your endpoints.
  If two endpoints have the same color, it means that they belong to the same service. 
 They will talk to each other using local function calls instead of network connection (this does not apply
 to CLOUD.message which will always go through RabbitMQ) </p>
-<p><code>pycloud-console</code> after sending traffic:<br />
-<img alt="alt text" src="img/pycloud_console_traffic.png" /></p>
+<p><code>pycloud-console</code> after sending traffic:  </p>
+<p><img alt="alt text" src="img/pycloud_console_traffic.png" style="max-width:1400px;" /></p>
 <p>As you can see new events are visible at the top.</p>
 <p>Moreover endpoints size is scaled depending on duration of function.</p>
-<p>To get more information about endpoint, just click on one:
-<img alt="alt text" src="img/pycloud_console_service_info.png" /></p>
-<p>To get more information about connection, click expand:
-<img alt="alt text" src="img/pycloud_console_connection_info.png" /></p>
+<p>To get more information about endpoint, just click on one:</p>
+<p><img alt="alt text" src="img/pycloud_console_service_info.png" style="max-width:1400px;" /></p>
+<p>To get more information about connection, click expand:</p>
+<p><img alt="alt text" src="img/pycloud_console_connection_info.png" style="max-width:1400px;" /></p>
 <p>If you want to see or disable additional information for all services/connections, 
 use <code>Endpoint metrics</code> and <code>Edge metrics</code> options:
-<img alt="alt text" src="img/pycloud_console_connections_all.png" /></p>
+<img alt="alt text" src="img/pycloud_console_connections_all.png" style="max-width:1400px;" /></p>
 <p>If you are interested only in some specific fragment of the graph, you can move 
 around services and zoom chosen fragment:
-<img alt="alt text" src="img/pycloud_console_zoom.png" /></p>
+<img alt="alt text" src="img/pycloud_console_zoom.png" style="max-width:1400px;" /></p>
 <h2 id="cli">CLI</h2>
 <p><code>$ pycloud -h</code></p>
 <pre><code>usage: pycloud [-h] {version,deploy,update,ls,clean} ...
